@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnBrick - Online Tuition Platform</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7', // Matching the blue brick approximate color
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles for consistency */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .hide {
+            display: none !important;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #whiteboard-canvas {
+            cursor: crosshair;
+            touch-action: none;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Notifications -->
+    <div id="notification-area" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white border-b border-slate-700 flex-none">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center cursor-pointer" onclick="router('landing')">
+                    <i class="bi bi-bricks text-brand-500 text-2xl mr-2"></i>
+                    <span class="font-bold text-xl tracking-tight">LearnBrick</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4" id="nav-links">
+                        <!-- Dynamic Links injected by JS -->
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button class="text-gray-300 hover:text-white p-2" onclick="toggleMobileMenu()">
+                        <i class="bi bi-list text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="app-container" class="flex-grow overflow-y-auto relative bg-brand-50">
+        
+        <!-- LANDING PAGE -->
+        <section id="view-landing" class="page-view">
+            <div class="relative bg-slate-900 overflow-hidden">
+                <div class="absolute inset-0">
+                    <img class="w-full h-full object-cover opacity-20" src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1" alt="Students">
+                    <div class="absolute inset-0 bg-slate-900 mix-blend-multiply"></div>
+                </div>
+                <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+                    <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                        Master Any Subject From Home
+                    </h1>
+                    <p class="mt-6 text-xl text-indigo-100 max-w-3xl">
+                        Join live classes with verified teachers. Real-time video, interactive whiteboard, and secure payments.
+                    </p>
+                    <div class="mt-10 flex space-x-4 justify-center">
+                        <button onclick="showAuth('student')" class="px-8 py-3 border border-transparent text-base font-medium rounded-md text-slate-900 bg-brand-500 hover:bg-brand-400 md:py-4 md:text-lg md:px-10 shadow-lg transform transition hover:scale-105">
+                            I'm a Student
+                        </button>
+                        <button onclick="showAuth('teacher')" class="px-8 py-3 border border-transparent text-base font-medium rounded-md text-brand-100 bg-slate-800 hover:bg-slate-700 md:py-4 md:text-lg md:px-10 border border-brand-500">
+                            I'm a Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="py-12 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="lg:text-center">
+                        <h2 class="text-base text-brand-600 font-semibold tracking-wide uppercase">Features</h2>
+                        <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                            A better way to learn online
+                        </p>
+                    </div>
+    
+                    <div class="mt-10">
+                        <dl class="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+                            <div class="relative">
+                                <dt>
+                                    <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-brand-500 text-white">
+                                        <i class="bi bi-camera-video-fill"></i>
+                                    </div>
+                                    <p class="ml-16 text-lg leading-6 font-medium text-gray-900">HD Video Classroom</p>
+                                </dt>
+                                <dd class="mt-2 ml-16 text-base text-gray-500">
+                                    Built-in WebRTC video conferencing. No external apps required.
+                                </dd>
+                            </div>
+                            <div class="relative">
+                                <dt>
+                                    <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-brand-500 text-white">
+                                        <i class="bi bi-wallet-fill"></i>
+                                    </div>
+                                    <p class="ml-16 text-lg leading-6 font-medium text-gray-900">Secure Wallet</p>
+                                </dt>
+                                <dd class="mt-2 ml-16 text-base text-gray-500">
+                                    Integrated Stripe payments. Teachers get paid instantly to their wallet.
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AUTH SECTION -->
+        <section id="view-auth" class="page-view hide min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-xl border border-gray-100">
+                <div>
+                    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900" id="auth-title">
+                        Sign in to your account
+                    </h2>
+                    <p class="mt-2 text-center text-sm text-gray-600">
+                        Or <a href="#" onclick="toggleAuthMode()" class="font-medium text-brand-600 hover:text-brand-500" id="auth-toggle-text">created a new account</a>
+                    </p>
+                </div>
+                <form class="mt-8 space-y-6" id="auth-form" onsubmit="handleAuth(event)">
+                    <input type="hidden" id="auth-role" value="student">
+                    <input type="hidden" id="auth-mode" value="login">
+                    
+                    <div class="rounded-md shadow-sm -space-y-px">
+                        <div>
+                            <label for="email-address" class="sr-only">Email address</label>
+                            <input id="email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-brand-500 focus:border-brand-500 focus:z-10 sm:text-sm" placeholder="Email address">
+                        </div>
+                        <div>
+                            <label for="password" class="sr-only">Password</label>
+                            <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-brand-500 focus:border-brand-500 focus:z-10 sm:text-sm" placeholder="Password">
+                        </div>
+                    </div>
+
+                    <!-- Teacher Specific Signup Fields -->
+                    <div id="teacher-fields" class="hide space-y-4 pt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Subjects</label>
+                            <input type="text" placeholder="Math, Physics, Chemistry..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">ID Proof (PDF/Image)</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <i class="bi bi-cloud-upload text-gray-400 text-3xl"></i>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="id-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-brand-600 hover:text-brand-500 focus-within:outline-none">
+                                            <span>Upload a file</span>
+                                            <input id="id-upload" name="id-upload" type="file" class="sr-only">
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <i class="bi bi-lock-fill group-hover:text-brand-400"></i>
+                            </span>
+                            <span id="auth-btn-text">Sign in</span>
+                        </button>
+                    </div>
+                </form>
+                <div class="mt-4 text-center">
+                   <button class="text-xs text-gray-500 underline" onclick="autoLogin('admin')">Demo: Login as Admin</button>
+                   <span class="mx-2 text-gray-300">|</span>
+                   <button class="text-xs text-gray-500 underline" onclick="autoLogin('teacher')">Demo: Login as Teacher</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDENT DASHBOARD -->
+        <section id="view-student-dash" class="page-view hide py-8 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-900">Find Your Perfect Class</h1>
+                    <div class="flex space-x-2">
+                        <input type="text" placeholder="Search subjects..." class="border border-gray-300 rounded-md px-4 py-2 focus:ring-brand-500 focus:border-brand-500">
+                        <button class="bg-brand-600 text-white px-4 py-2 rounded-md hover:bg-brand-700"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+
+                <!-- Active Enrollments -->
+                <div class="mb-10" id="student-enrollments-container">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Your Enrolled Classes</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="enrolled-list">
+                        <!-- Enrolled items will appear here -->
+                        <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500 border border-dashed border-gray-300">
+                            <p>No classes joined yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Classes -->
+                <h2 class="text-lg font-semibold text-gray-700 mb-4">Available Classes</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="available-classes-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TEACHER DASHBOARD -->
+        <section id="view-teacher-dash" class="page-view hide py-8 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Stats Cards -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Earnings</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-gray-900" id="wallet-total">$0.00</dd>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Withdrawable Balance</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-green-600" id="wallet-balance">$0.00</dd>
+                            <button class="mt-2 text-xs text-blue-600 hover:underline" onclick="alert('Withdrawal request sent to Admin.')">Request Withdraw</button>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                         <div class="px-4 py-5 sm:p-6">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Platform Commission (25%)</dt>
+                            <dd class="mt-1 text-3xl font-semibold text-red-400" id="wallet-commission">$0.00</dd>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-slate-800">My Classes</h2>
+                    <button onclick="toggleCreateClassModal()" class="bg-brand-600 text-white px-4 py-2 rounded-md shadow hover:bg-brand-700">
+                        <i class="bi bi-plus-lg mr-1"></i> Create New Class
+                    </button>
+                </div>
+
+                <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                    <ul role="list" class="divide-y divide-gray-200" id="teacher-class-list">
+                        <!-- Class List -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADMIN DASHBOARD -->
+        <section id="view-admin-dash" class="page-view hide py-8 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto">
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+                
+                <div class="bg-white shadow rounded-lg mb-8">
+                    <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Teacher Approvals</h3>
+                    </div>
+                    <ul class="divide-y divide-gray-200" id="admin-teacher-list">
+                        <!-- Pending teachers -->
+                        <li class="px-4 py-4 flex items-center justify-between sm:px-6">
+                            <div class="flex items-center">
+                                <img class="h-10 w-10 rounded-full" src="https://randomuser.me/api/portraits/women/44.jpg" alt="">
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">Sarah Connor</p>
+                                    <p class="text-sm text-gray-500">Physics | ID: Pending</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full font-semibold" onclick="approveTeacher(this)">Approve</button>
+                                <button class="px-3 py-1 bg-red-100 text-red-800 text-xs rounded-full font-semibold">Reject</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white shadow rounded-lg">
+                     <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Platform Financials</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600">Total Platform Commission Collected: <span class="font-bold text-green-600 text-xl">$125.50</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CLASSROOM (VIDEO + WHITEBOARD) -->
+        <section id="view-classroom" class="page-view hide h-full flex bg-slate-900 text-white overflow-hidden">
+            <!-- Left: Main Board/Video -->
+            <div class="flex-1 flex flex-col relative">
+                <!-- Stage -->
+                <div class="flex-1 relative bg-slate-800 overflow-hidden flex items-center justify-center" id="classroom-stage">
+                    
+                    <!-- Video Container (Hidden by default if whiteboard active) -->
+                    <div id="video-container" class="w-full h-full flex items-center justify-center relative">
+                         <video id="local-video" autoplay muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
+                         <div class="absolute bottom-4 left-4 bg-black/50 px-2 py-1 rounded text-sm">You (Me)</div>
+                         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-slate-500 flex flex-col items-center" id="video-placeholder">
+                             <i class="bi bi-camera-video-off text-6xl mb-2"></i>
+                             <p>Waiting for camera access...</p>
+                         </div>
+                    </div>
+
+                    <!-- Whiteboard Container -->
+                    <div id="whiteboard-container" class="absolute inset-0 bg-white hidden">
+                         <canvas id="whiteboard-canvas" class="w-full h-full"></canvas>
+                         <!-- Whiteboard Tools -->
+                         <div class="absolute top-4 left-4 bg-white shadow-lg rounded-lg p-2 flex space-x-2 border border-gray-200">
+                             <button onclick="setTool('pencil')" class="p-2 rounded hover:bg-gray-100 text-black"><i class="bi bi-pencil-fill"></i></button>
+                             <button onclick="setTool('eraser')" class="p-2 rounded hover:bg-gray-100 text-black"><i class="bi bi-eraser-fill"></i></button>
+                             <input type="color" id="color-picker" class="w-8 h-8 rounded cursor-pointer" value="#000000">
+                             <button onclick="clearBoard()" class="p-2 rounded hover:bg-red-50 text-red-600"><i class="bi bi-trash"></i></button>
+                         </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Control Bar -->
+                <div class="h-16 bg-slate-900 border-t border-slate-700 flex items-center justify-center space-x-6 px-4 z-10">
+                    <button onclick="toggleMic()" id="btn-mic" class="p-3 rounded-full bg-slate-700 hover:bg-slate-600 text-white"><i class="bi bi-mic-fill"></i></button>
+                    <button onclick="toggleCamera()" id="btn-cam" class="p-3 rounded-full bg-slate-700 hover:bg-slate-600 text-white"><i class="bi bi-camera-video-fill"></i></button>
+                    <button onclick="toggleScreen()" class="p-3 rounded-full bg-slate-700 hover:bg-slate-600 text-white hidden md:block"><i class="bi bi-display"></i></button>
+                    <button onclick="toggleBoard()" id="btn-board" class="p-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white w-32 font-semibold">
+                        <i class="bi bi-easel mr-1"></i> Board
+                    </button>
+                     <button onclick="leaveClass()" class="p-3 rounded-full bg-red-600 hover:bg-red-500 text-white px-6">End</button>
+                </div>
+            </div>
+
+            <!-- Right: Chat & Sidebar -->
+            <div class="w-80 bg-slate-800 border-l border-slate-700 flex flex-col">
+                <div class="p-4 border-b border-slate-700 font-semibold flex justify-between">
+                    <span>Class Chat</span>
+                    <span class="text-xs bg-green-600 px-2 py-1 rounded-full">Live</span>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3" id="chat-messages">
+                    <div class="text-xs text-slate-400 text-center">Room Joined</div>
+                    <!-- Messages appended here -->
+                </div>
+                <div class="p-4 bg-slate-900">
+                    <form onsubmit="sendMessage(event)" class="flex gap-2">
+                        <input type="text" id="chat-input" class="flex-1 bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500" placeholder="Type..." autocomplete="off">
+                        <button type="button" class="text-slate-400 hover:text-white"><i class="bi bi-paperclip"></i></button>
+                        <button type="submit" class="bg-brand-600 text-white p-2 rounded hover:bg-brand-500"><i class="bi bi-send-fill"></i></button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALS -->
+    
+    <!-- Payment Modal -->
+    <div id="modal-payment" class="fixed inset-0 z-50 hide flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Secure Payment</h3>
+                <button onclick="closeModal('modal-payment')" class="text-gray-400 hover:text-gray-600"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="border rounded p-4 mb-4 bg-gray-50">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-600">Class Fee</span>
+                    <span class="font-semibold" id="pay-amount">$50.00</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-500">
+                    <span>Platform Fee (included)</span>
+                    <span>25%</span>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pay With</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="processPayment('stripe')" class="flex items-center justify-center border border-gray-300 p-3 rounded hover:bg-gray-50 focus:ring-2 ring-brand-500">
+                        <i class="bi bi-stripe text-2xl text-indigo-600"></i>
+                    </button>
+                    <button onclick="processPayment('paypal')" class="flex items-center justify-center border border-gray-300 p-3 rounded hover:bg-gray-50 focus:ring-2 ring-brand-500">
+                        <i class="bi bi-paypal text-2xl text-blue-700"></i>
+                    </button>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-2"><i class="bi bi-lock-fill"></i> SSL Encrypted Transaction</p>
+        </div>
+    </div>
+
+    <!-- Create Class Modal -->
+    <div id="modal-create-class" class="fixed inset-0 z-50 hide flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+             <h3 class="text-lg font-bold mb-4">Create New Live Class</h3>
+             <form onsubmit="createClass(event)" class="space-y-4">
+                 <div>
+                     <label class="block text-sm font-medium text-gray-700">Class Title</label>
+                     <input type="text" name="title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-brand-500 focus:border-brand-500 sm:text-sm">
+                 </div>
+                 <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm">
+                     </div>
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700">Time</label>
+                        <input type="time" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm">
+                     </div>
+                 </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Fee ($)</label>
+                    <input type="number" name="fee" min="5" value="20" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm">
+                 </div>
+                 <div class="flex justify-end space-x-3 pt-4">
+                     <button type="button" onclick="toggleCreateClassModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                     <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700">Create & Publish</button>
+                 </div>
+             </form>
+        </div>
+    </div>
+
+    <script>
+        // STATE MOCK
+        let currentUser = null; // { type: 'student' | 'teacher' | 'admin', name: '...' }
+        
+        const mockClasses = [
+            { id: 1, title: 'Advanced Calculus', teacher: 'Dr. Emily Stone', price: 40, date: 'Today, 2:00 PM', image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=500&q=60' },
+            { id: 2, title: 'Intro to Python 3', teacher: 'Mark Zuckerberg', price: 50, date: 'Tomorrow, 10:00 AM', image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=500&q=60' },
+            { id: 3, title: 'Learn Spanish Basics', teacher: 'Maria Garcia', price: 25, date: 'Fri, 5:00 PM', image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=500&q=60' }
+        ];
+
+        let teacherWallet = {
+            total: 450.00,
+            balance: 337.50,
+            commission: 112.50
+        };
+
+        // ROUTER
+        function router(viewId) {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hide'));
+            document.getElementById('view-' + viewId).classList.remove('hide');
+            
+            // Navbar updates
+            renderNavbar();
+
+            if(viewId === 'admin-dash' && (!currentUser || currentUser.type !== 'admin')) {
+                router('auth'); 
+                notify('Admin access only', 'error');
+            }
+        }
+
+        // AUTH LOGIC
+        function showAuth(role) {
+            document.getElementById('auth-role').value = role;
+            toggleAuthUI(role);
+            router('auth');
+        }
+
+        function toggleAuthUI(role) {
+            const teacherFields = document.getElementById('teacher-fields');
+            const title = document.getElementById('auth-title');
+            const btn = document.getElementById('auth-btn-text');
+            
+            if (role === 'teacher') {
+                teacherFields.classList.remove('hide');
+                title.innerText = "Teacher Login / Signup";
+                btn.innerText = "Enter Portal";
+            } else {
+                teacherFields.classList.add('hide');
+                title.innerText = "Student Login / Signup";
+                btn.innerText = "Start Learning";
+            }
+        }
+
+        function autoLogin(role) {
+            if(role === 'student') {
+                currentUser = { type: 'student', name: 'Alex Student' };
+                notify('Welcome back, Alex!');
+                router('student-dash');
+            } else if(role === 'teacher') {
+                currentUser = { type: 'teacher', name: 'Prof. Snape' };
+                notify('Welcome back, Professor.');
+                router('teacher-dash');
+            } else {
+                currentUser = { type: 'admin', name: 'Admin User' };
+                notify('Admin Mode Activated');
+                router('admin-dash');
+            }
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            const role = document.getElementById('auth-role').value;
+            // Simulate server delay
+            setTimeout(() => {
+                autoLogin(role);
+            }, 500); 
+        }
+
+        function logout() {
+            currentUser = null;
+            notify('Logged out successfully');
+            router('landing');
+        }
+
+        // NAVBAR RENDERER
+        function renderNavbar() {
+            const navContainer = document.getElementById('nav-links');
+            let linksHtml = '';
+
+            if (!currentUser) {
+                linksHtml = `
+                    <a href="#" onclick="router('landing')" class="hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="#" onclick="showAuth('student')" class="hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium">Find Tutor</a>
+                    <a href="#" onclick="showAuth('teacher')" class="hover:bg-slate-700 px-3 py-2 rounded-md text-sm font-medium">Teach</a>
+                    <button onclick="showAuth('student')" class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-md text-sm font-medium ml-4">Login</button>
+                `;
+            } else {
+                if (currentUser.type === 'student') {
+                    linksHtml = `
+                        <a href="#" onclick="router('student-dash')" class="bg-slate-900 text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                        <a href="#" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Classes</a>
+                        <a href="#" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Messages</a>
+                        <div class="ml-4 flex items-center">
+                            <span class="mr-4 text-sm text-gray-300">Hi, ${currentUser.name}</span>
+                            <button onclick="logout()" class="text-gray-400 hover:text-white"><i class="bi bi-box-arrow-right text-lg"></i></button>
+                        </div>
+                    `;
+                } else if(currentUser.type === 'teacher') {
+                     linksHtml = `
+                        <a href="#" onclick="router('teacher-dash')" class="bg-slate-900 text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                        <a href="#" class="text-gray-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Earnings</a>
+                        <div class="ml-4 flex items-center">
+                            <span class="mr-4 text-sm text-gray-300">Hi, ${currentUser.name}</span>
+                            <button onclick="logout()" class="text-gray-400 hover:text-white"><i class="bi bi-box-arrow-right text-lg"></i></button>
+                        </div>
+                    `;
+                } else {
+                    linksHtml = `
+                        <a href="#" onclick="router('admin-dash')" class="bg-slate-900 text-white px-3 py-2 rounded-md text-sm font-medium">Admin Panel</a>
+                        <button onclick="logout()" class="ml-4 text-gray-400 hover:text-white">Logout</button>
+                    `;
+                }
+            }
+            navContainer.innerHTML = linksHtml;
+        }
+
+        // STUDENT LOGIC
+        function renderStudentDash() {
+            const container = document.getElementById('available-classes-list');
+            container.innerHTML = mockClasses.map(c => `
+                <div class="flex flex-col rounded-lg shadow-lg overflow-hidden bg-white hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex-shrink-0 h-48 w-full relative rounded-t-lg">
+                        <img class="h-full w-full object-cover" src="${c.image}" alt="">
+                        <div class="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-xs font-bold shadow text-brand-600">$${c.price}</div>
+                    </div>
+                    <div class="flex-1 bg-white p-6 flex flex-col justify-between">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-brand-600">
+                                Live Class
+                            </p>
+                            <div class="block mt-2">
+                                <p class="text-xl font-semibold text-gray-900">${c.title}</p>
+                                <p class="mt-3 text-base text-gray-500 line-clamp-3">Join this interactive session with ${c.teacher}. Covers key concepts and real-time Q&A.</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="text-sm text-gray-700">
+                                    <i class="bi bi-clock mr-1"></i> ${c.date}
+                                </div>
+                            </div>
+                            <button onclick="openPayment(${c.id}, ${c.price})" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700">
+                                Enroll
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // PAYMENT LOGIC
+        let pendingClassId = null;
+        let pendingAmount = 0;
+
+        function openPayment(id, amount) {
+            pendingClassId = id;
+            pendingAmount = amount;
+            document.getElementById('pay-amount').innerText = '$' + amount.toFixed(2);
+            document.getElementById('modal-payment').classList.remove('hide');
+        }
+
+        function processPayment(method) {
+            // Simulate API Call to Stripe
+            const btn = event.currentTarget;
+            btn.innerHTML = '<div class="animate-spin h-5 w-5 border-2 border-indigo-500 rounded-full border-t-transparent"></div>';
+            
+            setTimeout(() => {
+                document.getElementById('modal-payment').classList.add('hide');
+                notify(`Payment Successful via ${method}! You have joined the class.`);
+                
+                // Add to Enrolled List
+                const bookedClass = mockClasses.find(c => c.id === pendingClassId);
+                const enrolledContainer = document.getElementById('enrolled-list');
+                
+                // Remove empty state if exists
+                if (enrolledContainer.innerText.includes('No classes')) enrolledContainer.innerHTML = '';
+
+                enrolledContainer.innerHTML += `
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500 flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-gray-900">${bookedClass.title}</h3>
+                            <p class="text-sm text-gray-500">${bookedClass.date}</p>
+                        </div>
+                        <button onclick="joinClassroom('${bookedClass.title}')" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-500 animate-pulse">
+                            Join Live
+                        </button>
+                    </div>
+                `;
+            }, 1500); 
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hide');
+        }
+
+        // TEACHER LOGIC
+        function renderTeacherDash() {
+            const list = document.getElementById('teacher-class-list');
+            // Populate with some dummy data + any new ones
+            // Keeping it static for demo except creation
+            if(!list.innerHTML.trim()) {
+                list.innerHTML = `
+                    <li>
+                        <a href="#" class="block hover:bg-gray-50">
+                            <div class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-brand-600 truncate">Advanced Calculus</p>
+                                    <div class="ml-2 flex-shrink-0 flex">
+                                        <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 sm:flex sm:justify-between">
+                                    <div class="sm:flex">
+                                        <p class="flex items-center text-sm text-gray-500">
+                                            <i class="bi bi-people-fill mr-1 text-gray-400"></i> 12 Students enrolled
+                                        </p>
+                                    </div>
+                                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                        <button onclick="joinClassroom('Advanced Calculus')" class="text-brand-600 hover:underline">Start Class</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
+        function toggleCreateClassModal() {
+            const modal = document.getElementById('modal-create-class');
+            modal.classList.toggle('hide');
+        }
+
+        function createClass(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const title = formData.get('title');
+            const fee = formData.get('fee');
+            
+            toggleCreateClassModal();
+            notify(`Class "${title}" created successfully!`);
+
+            const list = document.getElementById('teacher-class-list');
+            const newClassHTML = `
+                <li class="animate-pulse bg-yellow-50">
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-brand-600 truncate">${title}</p>
+                            <div class="ml-2 flex-shrink-0 flex">
+                                <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Scheduled</p>
+                            </div>
+                        </div>
+                        <div class="mt-2 sm:flex sm:justify-between">
+                             <div class="sm:flex">
+                                <p class="flex items-center text-sm text-gray-500">Fee: $${fee}</p>
+                             </div>
+                             <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                <button onclick="joinClassroom('${title}')" class="text-brand-600 hover:underline">Start Class</button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            `;
+            list.insertAdjacentHTML('afterbegin', newClassHTML);
+        }
+
+        function approveTeacher(btn) {
+            btn.parentElement.parentElement.remove();
+            notify('Teacher approved successfully.');
+        }
+
+        // CLASSROOM & WEBRTC MOCK
+        let localStream = null;
+        let isBoardActive = false;
+
+        async function joinClassroom(title) {
+            router('classroom');
+            notify(`Joined: ${title}`);
+            
+            // Initializes Camera
+            try {
+                const videoEl = document.getElementById('local-video');
+                const placeholder = document.getElementById('video-placeholder');
+                
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoEl.srcObject = localStream;
+                placeholder.classList.add('hide');
+            } catch (err) {
+                notify('Camera access denied or unavailable', 'error');
+            }
+
+            // Initialize Chat with Welcome
+            document.getElementById('chat-messages').innerHTML = `<div class="text-xs text-slate-400 text-center my-2">System: You joined the room for ${title}</div>`;
+        }
+
+        function leaveClass() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (currentUser.type === 'teacher') router('teacher-dash');
+            else router('student-dash');
+        }
+
+        function toggleCamera() {
+            const btn = document.getElementById('btn-cam');
+            const videoTracks = localStream.getVideoTracks();
+            if(videoTracks.length > 0) {
+                videoTracks[0].enabled = !videoTracks[0].enabled;
+                btn.classList.toggle('bg-red-600');
+                btn.classList.toggle('bg-slate-700');
+                btn.innerHTML = videoTracks[0].enabled ? '<i class="bi bi-camera-video-fill"></i>' : '<i class="bi bi-camera-video-off-fill"></i>';
+            }
+        }
+
+        function toggleMic() {
+            const btn = document.getElementById('btn-mic');
+            const audioTracks = localStream.getAudioTracks();
+            if(audioTracks.length > 0) {
+                audioTracks[0].enabled = !audioTracks[0].enabled;
+                btn.classList.toggle('bg-red-600');
+                btn.classList.toggle('bg-slate-700');
+                btn.innerHTML = audioTracks[0].enabled ? '<i class="bi bi-mic-fill"></i>' : '<i class="bi bi-mic-mute-fill"></i>';
+            }
+        }
+
+        // WHITEBOARD LOGIC (Canvas)
+        const canvas = document.getElementById('whiteboard-canvas');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+        let tool = 'pencil';
+        let color = '#000000';
+        let brushSize = 2;
+
+        function resizeCanvas() {
+            const parent = document.getElementById('whiteboard-container');
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+        }
+
+        function toggleBoard() {
+            const boardContainer = document.getElementById('whiteboard-container');
+            const videoContainer = document.getElementById('video-container');
+            const btn = document.getElementById('btn-board');
+            
+            isBoardActive = !isBoardActive;
+            
+            if (isBoardActive) {
+                boardContainer.classList.remove('hidden');
+                videoContainer.classList.add('hidden'); // In real WebRTC, we might make video small Picture-in-Picture
+                btn.classList.remove('bg-blue-600');
+                btn.classList.add('bg-white', 'text-blue-600');
+                
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+            } else {
+                boardContainer.classList.add('hidden');
+                videoContainer.classList.remove('hidden');
+                btn.classList.add('bg-blue-600');
+                btn.classList.remove('bg-white', 'text-blue-600');
+            }
+        }
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function endPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = tool === 'eraser' ? 20 : 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : document.getElementById('color-picker').value;
+
+            // Get mouse pos relative to canvas
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+
+        function setTool(t) { tool = t; }
+        function clearBoard() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        // CHAT LOGIC
+        function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const msg = input.value;
+            if(!msg) return;
+
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-end";
+            div.innerHTML = `<div class="bg-brand-600 text-white rounded-lg py-1 px-3 max-w-[80%] text-sm break-words">${msg}</div><span class="text-[10px] text-slate-500 mt-1">You</span>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            input.value = '';
+
+            // Simulate reply
+            setTimeout(() => {
+                 const rDiv = document.createElement('div');
+                 rDiv.className = "flex flex-col items-start";
+                 rDiv.innerHTML = `<div class="bg-slate-700 text-gray-200 rounded-lg py-1 px-3 max-w-[80%] text-sm break-words">Got it! Any questions?</div><span class="text-[10px] text-slate-500 mt-1">Teacher</span>`;
+                 container.appendChild(rDiv);
+                 container.scrollTop = container.scrollHeight;
+            }, 2000);
+        }
+
+        // NOTIFICATION SYSTEM
+        function notify(msg, type='success') {
+            const area = document.getElementById('notification-area');
+            const el = document.createElement('div');
+            const color = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            el.className = `${color} text-white px-6 py-3 rounded shadow-lg text-sm font-medium transform transition-all duration-500 translate-x-full opacity-0 flex items-center`;
+            el.innerHTML = `<i class="bi bi-info-circle-fill mr-2"></i> ${msg}`;
+            
+            area.appendChild(el);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                el.classList.remove('translate-x-full', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                el.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => el.remove(), 500);
+            }, 3000);
+        }
+
+        // INITIALIZATION
+        window.onload = () => {
+            renderNavbar();
+            renderStudentDash();
+            renderTeacherDash();
+        };
+
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
